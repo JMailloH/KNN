@@ -111,11 +111,10 @@ public class JoinIterativeReducer<KEYIN,VALUEIN,KEYOUT,VALUEOUT> extends Reducer
     
     this.timer = new ArrayList<Long>();
   }
-
   
-	  /**
-	   * Generic reducer, it only adds all the RSs.
-	   */
+  /**
+   * Generic reducer, it only adds all the RSs.
+   */
   
 	protected void reduce(KEYIN id, Iterable<VALUEIN> rs, Context context) throws IOException, InterruptedException {
 
@@ -165,21 +164,8 @@ public class JoinIterativeReducer<KEYIN,VALUEIN,KEYOUT,VALUEOUT> extends Reducer
 		 int keyID = Integer.parseInt(context.getCurrentKey().toString());
 		 ArrayList<int []> idPredictedClass = new ArrayList<int []>();
 		 
-	    StrataID KEY = new StrataID();
-	    KEY.set(strata, firstId + 1);
-		 
-		 /*
-
-		 Configuration conf = context.getConfiguration();
-		 Path outputPath = new Path(outputDir);
-		 FileSystem outFS = outputPath.getFileSystem(conf);
-		 Path filenamePath = new Path(outputPath, "Predictions"+keyID).suffix(".txt");
-		 FSDataOutputStream ofile = outFS.create(filenamePath);
-		 StringBuilder in = new StringBuilder();
-		 String inString = null;
-		 in.append("***Predictions.txt ==> 1th column predicted class; 2on column right class***").append('\n');
-		 
-		 */
+		 StrataID KEY = new StrataID();
+		 KEY.set(strata, firstId + 1);
 		 
 		 Map<Integer, Integer> auxVote = new HashMap<Integer, Integer>();
 		 
@@ -194,7 +180,7 @@ public class JoinIterativeReducer<KEYIN,VALUEIN,KEYOUT,VALUEOUT> extends Reducer
 					 auxVote.put(classAux,0);
 				 }
 				 auxVote.put(classAux,auxVote.get(classAux)+1);
-				 //System.out.println("Clave: " + key + " -> Valor: " + classDistanceResult.get(key).get(i).first() + " " + classDistanceResult.get(key).get(i).second());
+				 System.out.println("Clave: " + key + " -> Valor: " + classDistanceResult.get(key).get(i).first() + " " + classDistanceResult.get(key).get(i).second());
 			 } 
 			 
 			 
@@ -203,7 +189,7 @@ public class JoinIterativeReducer<KEYIN,VALUEIN,KEYOUT,VALUEOUT> extends Reducer
 			 Iterator it2 = auxVote.keySet().iterator();
 			 while(it2.hasNext()){
 				 int key2 = (Integer) it2.next();
-				 if(vote <= auxVote.get(key2)){
+				 if(vote < auxVote.get(key2)){
 					 vote = auxVote.get(key2);
 					 predictedClass = key2;
 				 }

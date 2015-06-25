@@ -207,6 +207,47 @@ public class KnnMRModel extends Configured implements Tool {
     long reduceTime = output.getTime();
     
     
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    Map<String, Integer> parser = new HashMap<String, Integer>();
+
+	//Hacemos nuestra propia conversión del label (String) a entero. Escribiremos resultado con esta conversión para poderla releer en KnnMRModel.java
+	//Separamos la linea que contiene las etiquetas de la clase.
+	String atriClass = null;
+	
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
 	//Creamos y rellenamos la matriz de confusión.
 	
 	//Leemos desde la cabecera el número de clases que hay
@@ -224,6 +265,33 @@ public class KnnMRModel extends Configured implements Tool {
           		  num_classes += 1;
           	  }
             }
+            
+            
+            if(line.indexOf ("@attribute class")!= -1){
+            	atriClass = line.substring(line.indexOf ("@attribute class")+16);
+        	}else if(line.indexOf ("@attribute Class")!= -1){
+            	atriClass = line.substring(line.indexOf ("@attribute Class")+16);
+        	}
+        	//atriClass = atriClass.substring(0,atriClass.indexOf ("@"));
+        	
+            //System.out.println(atriClass);
+            
+        	//Limpiaos de corchetes y espacio
+        	atriClass = atriClass.replace(" ", "");
+        	atriClass = atriClass.replace("{", "");
+        	atriClass = atriClass.replace("}", "");
+        	
+        	String[] labels;
+        	labels = atriClass.split(",");
+        	
+        	//System.out.println("Etiquetas extraidas de la cabecera: ");
+        	
+        	for(int i = 0 ; i < labels.length ; i++){
+        		//System.out.println(labels[i]);
+        		parser.put(labels[i], i);
+        	}
+            
+            
         }
     }
     
@@ -254,7 +322,7 @@ public class KnnMRModel extends Configured implements Tool {
         String line = scannerTest.nextLine();
         lineSplit = line.split(",");
 		int[] aux = new int[2];
-		aux[0] = Integer.parseInt(lineSplit[lineSplit.length-1]);
+		aux[0] = parser.get(lineSplit[lineSplit.length-1]);
     	aux[1] = 0;
     	rightPredictedClass.add(aux);
     }

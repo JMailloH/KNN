@@ -32,7 +32,9 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Scanner;
 
 
@@ -51,7 +53,7 @@ public class KnnMapper extends MapredMapper<LongWritable,Text,StrataID,MapredOut
   
   /** will contain all instances if this mapper's split */
   private final List<Instance> instances = Lists.newArrayList();
-  
+    
   public int getFirstTreeId() {
     return firstId;
   }
@@ -131,6 +133,49 @@ public class KnnMapper extends MapredMapper<LongWritable,Text,StrataID,MapredOut
    int itert = 0;
 
     if(this.classifier.classifier.equals("KNN")){
+    	Map<String, Integer> parser = new HashMap<String, Integer>();
+
+    	//Hacemos nuestra propia conversión del label (String) a entero. Escribiremos resultado con esta conversión para poderla releer en KnnMRModel.java
+    	//Separamos la linea que contiene las etiquetas de la clase.
+    	String atriClass = null;
+    	if(this.header.indexOf ("@attribute class")!= -1){
+	    	atriClass = this.header.substring(this.header.indexOf ("@attribute class")+16);
+    	}else if(this.header.indexOf ("@attribute Class")!= -1){
+	    	atriClass = this.header.substring(this.header.indexOf ("@attribute Class")+16);
+    	}
+    	atriClass = atriClass.substring(0,atriClass.indexOf ("@"));
+    	
+    	//Limpiaos de corchetes y espacio
+    	atriClass = atriClass.replace(" ", "");
+    	atriClass = atriClass.replace("{", "");
+    	atriClass = atriClass.replace("}", "");
+    	
+    	String[] labels;
+    	labels = atriClass.split(",");
+    	
+    	//System.out.println("Etiquetas extraidas de la cabecera: ");
+    	
+    	for(int i = 0 ; i < labels.length ; i++){
+    		//System.out.println(labels[i]);
+    		parser.put(labels[i], i);
+    	}
+
+
+    	/*
+    	if((line.indexOf ("@attribute class")!= -1) || (line.indexOf ("@attribute Class")!= -1) ){
+            num_classes = 1;
+            for(int j = line.length() ; j > 0 ; j--){
+          	  if(line.substring(j-1,j).equals(",")){
+          		  num_classes += 1;
+          	  }
+            }
+        }
+    	*/
+    	
+    	
+    	//parser
+    	
+    	
     	
     	Path testPath = new Path(this.testName);
     	//Leemos el conjunto de test linea a linea
@@ -146,13 +191,25 @@ public class KnnMapper extends MapredMapper<LongWritable,Text,StrataID,MapredOut
 	        Instance nueva = converter.convert(line);
 	        String[] lineSplit;
 	        lineSplit = line.split(",");
-	        System.out.println("Clase leida del fichero: " + lineSplit[lineSplit.length-1]);
-	       // org.apache.mahout.keel.Dataset.Instance currentInstance = new org.apache.mahout.keel.Dataset.Instance( line, true, 1);
+	        
+	        
+	        
+	        //System.out.println("Clase leida del fichero: " + lineSplit[lineSplit.length-1]);
+	        
+	        
+	        
+	        // org.apache.mahout.keel.Dataset.Instance currentInstance = new org.apache.mahout.keel.Dataset.Instance( line, true, 1);
     		//Prototype current= new Prototype(currentInstance);
 	        Prototype current= new Prototype(nueva.get()); 
 	        
-	        System.out.println("Clase con el convert: " + current.getOutput(0));
-	        System.out.println("A ver si le doy la vuelta: " + converter.getLabelClass(current.numberOfInputs(), current.getOutput(0)));
+	        
+	        
+	        
+	        //System.out.println("Clase con el convert: " + current.getOutput(0));
+	        //System.out.println("A ver si le doy la vuelta: " + converter.getLabelClass(current.numberOfInputs(), current.getOutput(0)));
+	        //System.out.println("A ver si le doy la vuelta: " + parser.get(converter.getLabelClass(current.numberOfInputs(), current.getOutput(0))));
+	        
+	        
 	        
 	        PrototypeSet vecinos = KNN.getNearestNeighbors(current, training, this.Kneighbour);
 	        
@@ -163,13 +220,13 @@ public class KnnMapper extends MapredMapper<LongWritable,Text,StrataID,MapredOut
 	        for(int i=0; i< this.Kneighbour; i++){
 	        	
 	        	distances[i] = Distance.squaredEuclideanDistance(vecinos.get(i), current);
-	        	auxClass = Double.parseDouble(converter.getLabelClass(current.numberOfInputs(), current.getOutput(0)));
+	        	auxClass = (double) parser.get(converter.getLabelClass(vecinos.get(i).numberOfInputs(), vecinos.get(i).getOutput(0)));
 	        	
 	        	//Clase con la transformación deshecha NO FUNCIONA POR LOS LABELS DE LAS CLASES
-	        	//classes[i] = auxClass;
+	        	classes[i] = auxClass;
 	        	
 	        	//Clase con la transformación
-	        	classes[i] = vecinos.get(i).getOutput(0);       
+	        	//classes[i] = vecinos.get(i).getOutput(0);       
 	        	
 	        	//System.out.println(distances[i]+", "+classes[i]);
 	        	
