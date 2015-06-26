@@ -134,22 +134,43 @@ public class JoinIterativeReducer<KEYIN,VALUEIN,KEYOUT,VALUEOUT> extends Reducer
 					ArrayList<Pair <Double[], Double[]>> resultingSet =resultados.getResultingSet();
 					
 					int key = Integer.parseInt(id.toString());
+					
+					//Si aún no ha llegado ningúnos vecinos para esa instancia, lo inicializamos.
 					if(classDistanceResult.get(key)==null){
 						classDistanceResult.put((Integer) key, new ArrayList<Pair <Double, Double>>());
-					}					
+
+						for (int i = 0; i < resultingSet.size() ; i++){
+					    	context.progress();
+						
+					    	Pair<Double[], Double[]> auxPair = resultingSet.get(i);
+					    	//classDistanceResult
+					    	
+					    	for (int j = 0 ; j < this.Kneighbour ; j++){
+						    	first = auxPair.first()[j];
+								second = auxPair.second()[j];
+								classDistanceResult.get(key).add(new Pair <Double, Double>(first, second));
+					    	}   	
+						}
+						
+					//Actualizamos los vecinos más cercanos en caso de ser necesario.
+					}else{
+						// update the matrix when necessary:
+						int sizeTS = resultingSet.size();
+						int neighbors = classDistanceResult.get(key).size();
+						//int neighbors = classDistanceMatrix.get(0).first().length;
+
+						
+						for(int r = 0 ; r < sizeTS ; r++){
+							int x = 0;
+							for(int i = 0 ; i< neighbors ; i++){
+								if(resultingSet.get(r).second()[x]<classDistanceResult.get(key).get(i).second()){
+									classDistanceResult.get(key).get(i).set(resultingSet.get(r).first()[x], resultingSet.get(r).second()[x]);
+									x++;
+								}
+							}
+						}
+					}//Fin else			
 					
-					for (int i = 0; i < resultingSet.size() ; i++){
-				    	context.progress();
-					
-				    	Pair<Double[], Double[]> auxPair = resultingSet.get(i);
-				    	//classDistanceResult
-				    	
-				    	for (int j = 0 ; j < this.Kneighbour ; j++){
-					    	first = auxPair.first()[j];
-							second = auxPair.second()[j];
-							classDistanceResult.get(key).add(new Pair <Double, Double>(first, second));
-				    	}   	
-					}
 				}
 		    }
 		} 
@@ -180,7 +201,7 @@ public class JoinIterativeReducer<KEYIN,VALUEIN,KEYOUT,VALUEOUT> extends Reducer
 					 auxVote.put(classAux,0);
 				 }
 				 auxVote.put(classAux,auxVote.get(classAux)+1);
-				 System.out.println("Clave: " + key + " -> Valor: " + classDistanceResult.get(key).get(i).first() + " " + classDistanceResult.get(key).get(i).second());
+				 //System.out.println("Clave: " + key + " -> Valor: " + classDistanceResult.get(key).get(i).first() + " " + classDistanceResult.get(key).get(i).second());
 			 } 
 			 
 			 
